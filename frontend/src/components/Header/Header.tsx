@@ -33,7 +33,7 @@ function Header() {
         </nav>
 
         <div className="header-actions">
-          <button className="login-btn">Login</button>
+          <button className="login-btn" onClick={() => window.location.href = '/login'}>Login</button>
           <button 
             className="mobile-menu-toggle"
             onClick={toggleMobileMenu}
