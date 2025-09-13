@@ -1,5 +1,7 @@
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
+import EventSection from '../../components/EventSection/EventSection';
+import { eventCategories } from '../../data/mockEvents';
 import './Homepage.css';
 
 function Homepage() {
@@ -17,23 +19,14 @@ function Homepage() {
           </div>
         </section>
         
-        <section className="featured-events">
-          <h2>Eventos em Destaque</h2>
-          <div className="events-grid">
-            <div className="event-card">
-              <h3>Show de Rock Local</h3>
-              <p>Hoje às 20h</p>
-            </div>
-            <div className="event-card">
-              <h3>Workshop de Arte</h3>
-              <p>Amanhã às 14h</p>
-            </div>
-            <div className="event-card">
-              <h3>Festival Gastronômico</h3>
-              <p>Este fim de semana</p>
-            </div>
-          </div>
-        </section>
+        {eventCategories.map((category) => (
+          <EventSection
+            key={category.title}
+            title={category.title}
+            events={category.events}
+            showAll={category.showAll}
+          />
+        ))}
       </main>
       <Footer />
     </div>
