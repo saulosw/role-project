@@ -43,15 +43,40 @@ function Register() {
   const isPasswordValid = passwordRequirements.every(req => req.met);
   const doPasswordsMatch = formData.password === formData.confirmPassword && formData.confirmPassword.length > 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isPasswordValid || !doPasswordsMatch) return;
-    
+
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('http://localhost:3000/auth/signIn', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Usuário registrado com sucesso!');
+        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+        window.location.href = '/login';
+      } else {
+        alert(data.message || 'Erro ao registrar usuário');
+      }
+    } catch (error) {
+      console.error('Erro na requisição:', error);
+      alert('Erro ao conectar com o servidor');
+    } finally {
       setIsLoading(false);
-      console.log('Registration attempt:', formData);
-    }, 1500);
+    }
   };
 
   const handleLoginClick = () => {
