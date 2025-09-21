@@ -65,11 +65,10 @@ function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Usuário registrado com sucesso!');
         setFormData({ name: '', email: '', password: '', confirmPassword: '' });
         window.location.href = '/login';
       } else {
-        alert(data.message || 'Erro ao registrar usuário');
+        console.error(data.message || 'Erro ao registrar usuário');
       }
     } catch (error) {
       console.error('Erro na requisição:', error);

@@ -8,14 +8,35 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('http://localhost:3000/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('Login efetuado com Sucesso!');
+        window.location.href = '/';
+      } else {
+        console.error(data.message || 'Erro ao logar o usuário');
+      }
+    } catch (error) {
+      console.error('Erro ao efetuar o login ', error);
+    } finally {
       setIsLoading(false);
-      console.log('Login attempt:', { email, password });
-    }, 1500);
+    }
   };
 
   const handleSignUpClick = () => {
