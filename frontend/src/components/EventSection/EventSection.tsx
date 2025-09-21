@@ -26,27 +26,31 @@ function EventSection({ title, events, showAll = false }: EventSectionProps) {
 
   const displayedEvents = events.slice(0, visibleCount);
 
+  if (events.length === 0) {
+    return null;
+  }
+
   return (
     <section className="event-section">
       <div className="section-header">
         <h2 className="section-title">{title}</h2>
         {events.length > 6 && (
-          <button 
+          <button
             className="show-more-btn"
             onClick={handleShowMore}
           >
             {isExpanded ? 'Ver Menos' : `Ver Todos (${events.length})`}
-            <IoChevronForward 
-              className={`show-more-icon ${isExpanded ? 'rotated' : ''}`} 
+            <IoChevronForward
+              className={`show-more-icon ${isExpanded ? 'rotated' : ''}`}
             />
           </button>
         )}
       </div>
-      
+
       <div className="events-grid">
         {displayedEvents.map((event, index) => (
-          <div 
-            key={event.id} 
+          <div
+            key={event.id}
             className="event-card-wrapper"
             style={{
               animationDelay: `${index * 0.1}s`
