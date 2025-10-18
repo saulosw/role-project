@@ -1,4 +1,4 @@
-import { styled, Box, Typography, Button } from '@mui/material';
+import { styled, Box, Typography, Button, TextField } from '@mui/material';
 import { keyframes } from '@emotion/react';
 
 const fadeIn = keyframes`
@@ -87,6 +87,11 @@ const movePattern = keyframes`
   }
 `;
 
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+`;
+
 export const PageContainer = styled(Box)({
   minHeight: '100vh',
   display: 'flex',
@@ -124,6 +129,55 @@ export const FormContainer = styled(Box)(({ theme }) => ({
     maxWidth: '100%',
   },
 }));
+
+export const StyledTextField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '1rem',
+    '& fieldset': {
+      borderWidth: '2px',
+      borderColor: '#e5e5e5',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(255, 107, 53, 0.5)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#ff6b35',
+      boxShadow: '0 0 0 3px rgba(255, 107, 53, 0.1)',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '0.95rem',
+    fontWeight: 500,
+    color: '#2c2c2c',
+    '&.Mui-focused': {
+      color: '#ff6b35',
+    },
+  },
+  '& .MuiFormHelperText-root': {
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: '0.85rem',
+  },
+});
+
+export const ErrorText = styled('span')({
+  color: '#d32f2f',
+  fontSize: '0.85rem',
+  marginTop: '0.5rem',
+  fontFamily: "'Poppins', sans-serif",
+});
+
+export const LoadingSpinner = styled(Box)({
+  width: '20px',
+  height: '20px',
+  border: '2px solid rgba(255, 255, 255, 0.3)',
+  borderTop: '2px solid white',
+  borderRadius: '50%',
+  animation: `${spin} 1s linear infinite`,
+  margin: '0 auto',
+});
 
 export const Label = styled('label')({
   display: 'flex',
@@ -381,9 +435,6 @@ export const EventCardPreview = styled(Box)(({ theme }) => ({
   '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: '0 15px 50px rgba(0, 0, 0, 0.15)',
-    '& .event-card-image': {
-      transform: 'scale(1.05)',
-    },
   },
   [theme.breakpoints.down('lg')]: {
     maxWidth: '100%',
@@ -437,22 +488,16 @@ export const CardImageContainer = styled(Box)(({ theme }) => ({
   },
 }));
 
-export const CardImage = styled('img')({
+export const CategoryIconContainer = styled(Box)<{ gradient: string }>(({ gradient }) => ({
   width: '100%',
   height: '100%',
-  objectFit: 'cover',
-  transition: 'all 0.5s ease',
-});
-
-export const NoImage = styled(Box)({
-  width: '100%',
-  height: '100%',
-  background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff4757 100%)',
+  background: gradient,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   position: 'relative',
   overflow: 'hidden',
+  transition: 'all 0.5s ease',
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -469,16 +514,53 @@ export const NoImage = styled(Box)({
     )`,
     animation: `${movePattern} 20s linear infinite`,
   },
-  '& span': {
-    fontSize: '1.2rem',
-    fontWeight: 600,
-    color: 'white',
-    zIndex: 1,
-    textTransform: 'uppercase',
-    letterSpacing: '2px',
-    textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
-    fontFamily: "'Poppins', sans-serif",
+  '&:hover span': {
+    transform: 'scale(1.1) rotate(5deg)',
   },
+}));
+
+export const CategoryIcon = styled('span')({
+  fontSize: '8rem',
+  zIndex: 1,
+  filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.2))',
+  transition: 'all 0.3s ease',
+});
+
+export const PlaceholderContainer = styled(Box)({
+  width: '100%',
+  height: '100%',
+  background: 'linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: '-50%',
+    left: '-50%',
+    width: '200%',
+    height: '200%',
+    background: `repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(0, 0, 0, 0.02) 10px,
+      rgba(0, 0, 0, 0.02) 20px
+    )`,
+    animation: `${movePattern} 20s linear infinite`,
+  },
+});
+
+export const PlaceholderText = styled('span')({
+  fontSize: '1.2rem',
+  fontWeight: 600,
+  color: '#999999',
+  zIndex: 1,
+  textTransform: 'uppercase',
+  letterSpacing: '2px',
+  fontFamily: "'Poppins', sans-serif",
 });
 
 export const CardDetails = styled(Box)(({ theme }) => ({
