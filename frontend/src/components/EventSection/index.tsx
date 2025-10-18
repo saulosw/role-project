@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { IoChevronForward } from 'react-icons/io5';
-import EventCard from '../EventCard/EventCard';
+import EventCard from '../EventCard';
 import type { Event } from '../../data/mockEvents';
-import './EventSection.css';
+import * as S from './styles';
 
 interface EventSectionProps {
   title: string;
@@ -31,36 +31,27 @@ function EventSection({ title, events, showAll = false }: EventSectionProps) {
   }
 
   return (
-    <section className="event-section">
-      <div className="section-header">
-        <h2 className="section-title">{title}</h2>
+    <S.Section>
+      <S.SectionHeader>
+        <S.SectionTitle>{title}</S.SectionTitle>
         {events.length > 6 && (
-          <button
-            className="show-more-btn"
-            onClick={handleShowMore}
-          >
+          <S.ShowMoreButton onClick={handleShowMore}>
             {isExpanded ? 'Ver Menos' : `Ver Todos (${events.length})`}
-            <IoChevronForward
-              className={`show-more-icon ${isExpanded ? 'rotated' : ''}`}
-            />
-          </button>
+            <S.ShowMoreIcon rotated={isExpanded}>
+              <IoChevronForward />
+            </S.ShowMoreIcon>
+          </S.ShowMoreButton>
         )}
-      </div>
+      </S.SectionHeader>
 
-      <div className="events-grid">
+      <S.EventsGrid>
         {displayedEvents.map((event, index) => (
-          <div
-            key={event.id}
-            className="event-card-wrapper"
-            style={{
-              animationDelay: `${index * 0.1}s`
-            }}
-          >
+          <S.EventCardWrapper key={event.id} delay={index * 0.1}>
             <EventCard {...event} />
-          </div>
+          </S.EventCardWrapper>
         ))}
-      </div>
-    </section>
+      </S.EventsGrid>
+    </S.Section>
   );
 }
 

@@ -1,0 +1,60 @@
+import { IoLocationOutline, IoTimeOutline, IoCalendarOutline } from 'react-icons/io5';
+import * as S from './styles';
+
+interface EventCardProps {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+  price?: string;
+  imageColor?: string;
+}
+
+function EventCard({
+  title,
+  description,
+  date,
+  time,
+  location,
+  category,
+  price,
+  imageColor = '#ff6b35'
+}: EventCardProps) {
+  return (
+    <S.Card>
+      <S.ImagePlaceholder imageColor={imageColor}>
+        <S.Category className="event-category">{category}</S.Category>
+        {price && <S.Price className="event-price">{price}</S.Price>}
+      </S.ImagePlaceholder>
+
+      <S.Content>
+        <S.Title className="event-title">{title}</S.Title>
+        <S.Description>{description}</S.Description>
+
+        <S.Details>
+          <S.Detail>
+            <IoCalendarOutline className="detail-icon" />
+            <span>{date}</span>
+          </S.Detail>
+
+          <S.Detail>
+            <IoTimeOutline className="detail-icon" />
+            <span>{time}</span>
+          </S.Detail>
+
+          <S.Detail>
+            <IoLocationOutline className="detail-icon" />
+            <span>{location}</span>
+          </S.Detail>
+        </S.Details>
+
+        <S.CTAButton>Ver Detalhes</S.CTAButton>
+      </S.Content>
+    </S.Card>
+  );
+}
+
+export default EventCard;

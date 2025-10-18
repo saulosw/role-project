@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import Homepage from './pages/HomePage/Homepage';
+import HomePagePage from './pages/HomePagePage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import AboutUs from './pages/AboutUs/AboutUs';
-import CreateEvent from './pages/CreateEvent/CreateEvent';
+import AboutUsPage from './pages/AboutUsPage';
+import CreateEventPage from './pages/CreateEventPage';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Homepage />} />
+        <Route path="/" element={<HomePagePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path='/criar' element={<CreateEvent />} />
-        <Route path="/sobre" element={<AboutUs />} />
+        <Route path='/criar' element={<CreateEventPage />} />
+        <Route path="/sobre" element={<AboutUsPage />} />
       </Routes>
     </Router>
   );
