@@ -30,6 +30,8 @@ export const useLoginForm = () => {
       const result = await response.json();
 
       if (response.ok) {
+        localStorage.setItem('userId', result.user.id);
+        localStorage.setItem('userName', result.user.name);
         navigate('/');
       } else {
         setError(result.message || 'Erro ao logar o usuário. Verifique suas credenciais.');

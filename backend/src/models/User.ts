@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const ulid = require('ulid').ulid;
 
 class User {
     static async findUserByEmail (email: string) {
@@ -14,14 +15,16 @@ class User {
     }
 
     static async createNewUser (name: string, email: string, hashPassword: string) {
+        const userId = ulid();
+
         const query = `
-            INSERT INTO users (full_name, email, password)
-            VALUES ($1, $2, $3)
+            INSERT INTO users (id, name, email, password_hash)
+            VALUES ($1, $2, $3, $4)
             RETURNING *;
         `;
 
         try {
-            const { rows } = await pool.query(query, [ name, email, hashPassword ]);
+            const { rows } = await pool.query(query, [ userId, name, email, hashPassword ]);
             return rows[0];
         } catch (error) {
             console.error('Error to create a new user: ', error);

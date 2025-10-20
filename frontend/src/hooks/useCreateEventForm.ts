@@ -26,13 +26,32 @@ export const useCreateEventForm = () => {
     setIsLoading(true);
     setError(null);
 
+    const userId = localStorage.getItem('userId');
+
+    if (!userId) {
+      setError('Você precisa estar logado para criar um evento.');
+      setIsLoading(false);
+      navigate('/login');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:3000/events', {
+      const eventData = {
+        title: data.name,
+        description: data.description,
+        category: data.category,
+        event_date: data.date,
+        durationHours: data.durationHours,
+        location: data.location,
+      };
+
+      const response = await fetch('http://localhost:3000/event/newEvent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-user-id': userId,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(eventData),
       });
 
       const result = await response.json();

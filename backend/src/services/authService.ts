@@ -9,7 +9,7 @@ exports.login = async (email: string, password: string) => {
         throw error;
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    const isPasswordMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isPasswordMatch) {
         const error = new Error('Invalid credentials.');

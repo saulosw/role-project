@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import * as S from './styles';
+import UserProfile from '../UserProfile';
 
 function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -33,9 +34,7 @@ function Header() {
         </S.Nav>
 
         <S.HeaderActions>
-          <S.LoginButton onClick={() => window.location.href = '/login'}>
-            Login
-          </S.LoginButton>
+          <UserProfile />
           <S.MobileMenuToggle
             onClick={toggleMobileMenu}
             open={isMobileMenuOpen}
