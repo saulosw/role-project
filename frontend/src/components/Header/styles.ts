@@ -100,23 +100,9 @@ export const NavLink = styled('a')(({ theme }) => ({
   borderRadius: '25px',
   transition: 'all 0.3s ease',
   position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
-    transition: 'left 0.5s ease',
-  },
+  display: 'inline-block',
   '&:hover': {
     background: 'rgba(255, 255, 255, 0.2)',
-    transform: 'translateY(-2px)',
-    '&::before': {
-      left: '100%',
-    },
   },
   [theme.breakpoints.down('md')]: {
     display: 'block',
