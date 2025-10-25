@@ -11,6 +11,8 @@ interface EventCardProps {
   category: string;
   price?: string;
   imageColor?: string;
+  categoryIcon?: string;
+  onClick?: () => void;
 }
 
 function EventCard({
@@ -21,11 +23,14 @@ function EventCard({
   location,
   category,
   price,
-  imageColor = '#ff6b35'
+  imageColor = '#ff6b35',
+  categoryIcon,
+  onClick
 }: EventCardProps) {
   return (
-    <S.Card>
+    <S.Card onClick={onClick}>
       <S.ImagePlaceholder imageColor={imageColor}>
+        {categoryIcon && <S.CategoryIconLarge>{categoryIcon}</S.CategoryIconLarge>}
         <S.Category className="event-category">{category}</S.Category>
         {price && <S.Price className="event-price">{price}</S.Price>}
       </S.ImagePlaceholder>

@@ -1,6 +1,6 @@
 import { styled, Box, Typography, Button } from '@mui/material';
 
-export const Card = styled(Box)(({ theme }) => ({
+export const Card = styled(Box)({
   background: 'white',
   borderRadius: '16px',
   overflow: 'hidden',
@@ -21,12 +21,12 @@ export const Card = styled(Box)(({ theme }) => ({
     background: 'rgba(255, 255, 255, 1)',
     transform: 'scale(1.05)',
   },
-}));
+});
 
 export const ImagePlaceholder = styled(Box)<{ imageColor?: string }>(({ imageColor = '#ff6b35' }) => ({
   width: '100%',
   height: '180px',
-  background: `linear-gradient(135deg, ${imageColor} 0%, #f7931e 100%)`,
+  background: imageColor.includes('gradient') ? imageColor : `linear-gradient(135deg, ${imageColor} 0%, #f7931e 100%)`,
   position: 'relative',
   display: 'flex',
   alignItems: 'center',
@@ -46,6 +46,13 @@ export const ImagePlaceholder = styled(Box)<{ imageColor?: string }>(({ imageCol
     height: '160px',
   },
 }));
+
+export const CategoryIconLarge = styled('span')({
+  fontSize: '4rem',
+  position: 'relative',
+  zIndex: 1,
+  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+});
 
 export const Category = styled(Box)({
   position: 'absolute',

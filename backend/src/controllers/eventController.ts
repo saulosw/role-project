@@ -42,3 +42,17 @@ exports.getAllEvents = async (req: express.Request, res: express.Response) => {
         res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
     }
 }
+
+exports.getEventsByCategory = async (req: express.Request, res: express.Response) => {
+    const limit = parseInt(req.query.limit as string) || 5;
+
+    try {
+        const eventsByCategory = await eventService.getEventsByCategory(limit);
+        res.status(200).json({
+            success: true,
+            eventsByCategory
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
+    }
+}

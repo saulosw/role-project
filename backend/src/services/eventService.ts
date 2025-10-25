@@ -16,3 +16,8 @@ exports.getAllEvents = async (limit: number = 50, offset: number = 0): Promise<{
     const total = await Event.getTotalEventCount();
     return { events, total };
 }
+
+exports.getEventsByCategory = async (limit: number = 5): Promise<Record<string, EventResponse[]>> => {
+    const eventsByCategory = await Event.getEventsByCategory(limit);
+    return eventsByCategory;
+}

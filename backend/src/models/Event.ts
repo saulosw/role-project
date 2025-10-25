@@ -63,6 +63,7 @@ class Event {
                 u.email as organizer_email
             FROM events e
             LEFT JOIN users u ON e.organizer_id = u.id
+            WHERE e.event_date + (e.duration_hours || ' hours')::INTERVAL > NOW()
             ORDER BY e.created_at DESC
             LIMIT $1 OFFSET $2
         `;
@@ -77,13 +78,52 @@ class Event {
     }
 
     static async getTotalEventCount(): Promise<number> {
-        const query = 'SELECT COUNT(*) as total FROM events';
+        const query = `
+            SELECT COUNT(*) as total
+            FROM events
+            WHERE event_date + (duration_hours || ' hours')::INTERVAL > NOW()
+        `;
 
         try {
             const { rows } = await pool.query(query);
             return parseInt(rows[0].total, 10);
         } catch (error) {
             console.error('Error getting total event count:', error);
+            throw error;
+        }
+    }
+
+    static async getEventsByCategory(limit: number = 5): Promise<Record<string, EventResponse[]>> {
+        const query = `
+            SELECT
+                e.*,
+                u.name as organizer_name,
+                u.email as organizer_email
+            FROM events e
+            LEFT JOIN users u ON e.organizer_id = u.id
+            WHERE e.event_date + (e.duration_hours || ' hours')::INTERVAL > NOW()
+            ORDER BY e.category, e.event_date ASC
+        `;
+
+        try {
+            const { rows } = await pool.query(query);
+
+            const eventsByCategory: Record<string, EventResponse[]> = {};
+
+            rows.forEach((event: EventResponse) => {
+                const category = event.category;
+                if (!eventsByCategory[category]) {
+                    eventsByCategory[category] = [];
+                }
+
+                if (eventsByCategory[category] && eventsByCategory[category].length < limit) {
+                    eventsByCategory[category].push(event);
+                }
+            });
+
+            return eventsByCategory;
+        } catch (error) {
+            console.error('Error retrieving events by category:', error);
             throw error;
         }
     }

@@ -191,3 +191,56 @@ export const CTAButton = styled(Button)(({ theme }) => ({
     padding: '1rem 2.5rem',
   },
 }));
+
+export const EventsSection = styled(Box)(({ theme }) => ({
+  maxWidth: '1400px',
+  margin: '0 auto',
+  padding: '4rem 2rem',
+  [theme.breakpoints.down('md')]: {
+    padding: '3rem 1rem',
+  },
+}));
+
+export const LoadingContainer = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '4rem 2rem',
+  gap: '1rem',
+});
+
+export const LoadingText = styled(Typography)({
+  fontFamily: "'Poppins', sans-serif",
+  fontSize: '1rem',
+  color: '#666',
+  marginTop: '1rem',
+});
+
+export const EmptyState = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '4rem 2rem',
+  textAlign: 'center',
+});
+
+export const EmptyIcon = styled('span')({
+  fontSize: '4rem',
+  marginBottom: '1rem',
+});
+
+export const EmptyTitle = styled(Typography)({
+  fontFamily: "'Montserrat', sans-serif",
+  fontSize: '1.5rem',
+  fontWeight: 700,
+  color: '#2c2c2c',
+  marginBottom: '0.5rem',
+});
+
+export const EmptyText = styled(Typography)({
+  fontFamily: "'Poppins', sans-serif",
+  fontSize: '1rem',
+  color: '#666',
+});
