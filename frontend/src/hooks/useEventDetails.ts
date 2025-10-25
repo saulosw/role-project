@@ -23,35 +23,94 @@ export const useEventDetails = () => {
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isParticipating, setIsParticipating] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
+
+  const checkParticipation = async () => {
+    if (!eventId) return;
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/event/checkParticipation/${eventId}`, {
+        headers: {
+          'x-user-id': userId
+        }
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsParticipating(result.isParticipating);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar participação:', error);
+    }
+  };
+
+  const fetchEventData = async () => {
+    if (!eventId) {
+      setError('ID do evento não encontrado');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const response = await fetch(`http://localhost:3000/event/getEvent/${eventId}`);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setEventData(result.event);
+        setError(null);
+        await checkParticipation();
+      } else {
+        setError(result.message || 'Evento não encontrado');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do evento:', error);
+      setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const joinEvent = async () => {
+    if (!eventId) return;
+
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+
+      const response = await fetch(`http://localhost:3000/event/joinEvent/${eventId}`, {
+        method: 'POST',
+        headers: {
+          'x-user-id': userId
+        }
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsParticipating(true);
+        setEventData(prev => prev ? { ...prev, attendee_count: result.participantCount } : null);
+      } else {
+        setError(result.message || 'Erro ao participar do evento');
+      }
+    } catch (error) {
+      console.error('Erro ao participar do evento:', error);
+      setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchEventData = async () => {
-      if (!eventId) {
-        setError('ID do evento não encontrado');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-
-        const response = await fetch(`http://localhost:3000/event/getEvent/${eventId}`);
-        const result = await response.json();
-
-        if (response.ok && result.success) {
-          setEventData(result.event);
-          setError(null);
-        } else {
-          setError(result.message || 'Evento não encontrado');
-        }
-      } catch (error) {
-        console.error('Erro ao buscar dados do evento:', error);
-        setError('Erro ao conectar com o servidor. Tente novamente mais tarde.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchEventData();
   }, [eventId]);
 
@@ -61,5 +120,8 @@ export const useEventDetails = () => {
     error,
     eventId,
     navigate,
+    isParticipating,
+    isJoining,
+    joinEvent,
   };
 };

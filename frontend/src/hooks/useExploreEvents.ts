@@ -72,6 +72,16 @@ export const useExploreEvents = () => {
 
   useEffect(() => {
     fetchEvents();
+
+    const handleFocus = () => {
+      fetchEvents(0, false);
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const handleEventClick = (eventId: string) => {

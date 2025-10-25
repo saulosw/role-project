@@ -1,5 +1,5 @@
 import { Alert, CircularProgress } from '@mui/material';
-import { IoCalendarOutline, IoTimeOutline, IoLocationOutline } from 'react-icons/io5';
+import { IoCalendarOutline, IoTimeOutline, IoLocationOutline, IoPeopleOutline } from 'react-icons/io5';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useExploreEvents } from '../../hooks/useExploreEvents';
@@ -74,6 +74,11 @@ function ExplorePage() {
                         <S.DetailItem>
                           <IoLocationOutline className="detail-icon" />
                           <span>{event.location}</span>
+                        </S.DetailItem>
+
+                        <S.DetailItem>
+                          <IoPeopleOutline className="detail-icon" />
+                          <span>{event.attendee_count || 0} {(event.attendee_count || 0) === 1 ? 'participante' : 'participantes'}</span>
                         </S.DetailItem>
                       </S.EventDetails>
 

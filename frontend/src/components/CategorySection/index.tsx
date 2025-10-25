@@ -10,6 +10,7 @@ interface EventData {
   event_date: string;
   duration_hours: number;
   location: string;
+  attendee_count?: number;
 }
 
 interface CategorySectionProps {
@@ -56,6 +57,7 @@ function CategorySection({ category, events, onEventClick }: CategorySectionProp
                   category={categoryStyle.name}
                   categoryIcon={categoryStyle.icon}
                   imageColor={categoryStyle.gradient}
+                  attendeeCount={event.attendee_count || 0}
                   onClick={() => onEventClick(event.id)}
                 />
               </S.EventCardWrapper>

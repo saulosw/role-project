@@ -56,3 +56,43 @@ exports.getEventsByCategory = async (req: express.Request, res: express.Response
         res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
     }
 }
+
+exports.joinEvent = async (req: express.Request, res: express.Response) => {
+    const { eventId } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    try {
+        await eventService.joinEvent(eventId, userId);
+        const participantCount = await eventService.getParticipantCount(eventId);
+        res.status(200).json({
+            success: true,
+            message: 'Successfully joined event',
+            participantCount
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
+    }
+}
+
+exports.checkParticipation = async (req: express.Request, res: express.Response) => {
+    const { eventId } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+        return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    try {
+        const isParticipating = await eventService.checkParticipation(eventId, userId);
+        res.status(200).json({
+            success: true,
+            isParticipating
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
+    }
+}

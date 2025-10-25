@@ -6,7 +6,7 @@ import { getCategoryStyle } from '../../utils/categoryIcons';
 import * as S from './styles';
 
 function EventPage() {
-  const { eventData, isLoading, error, navigate } = useEventDetails();
+  const { eventData, isLoading, error, navigate, isParticipating, isJoining, joinEvent } = useEventDetails();
 
   if (isLoading) {
     return (
@@ -125,8 +125,12 @@ function EventPage() {
                 </S.ParticipantsSection>
 
                 <S.ActionButtons>
-                  <S.PrimaryButton variant="contained">
-                    Participar do Evento
+                  <S.PrimaryButton
+                    variant="contained"
+                    onClick={joinEvent}
+                    disabled={isParticipating || isJoining}
+                  >
+                    {isJoining ? 'Participando...' : isParticipating ? 'Já está participando' : 'Participar do Evento'}
                   </S.PrimaryButton>
                   <S.SecondaryButton variant="outlined">
                     Compartilhar

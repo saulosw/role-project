@@ -39,7 +39,12 @@ class Event {
             SELECT
                 e.*,
                 u.name as organizer_name,
-                u.email as organizer_email
+                u.email as organizer_email,
+                COALESCE((
+                    SELECT COUNT(*)
+                    FROM event_participants ep
+                    WHERE ep.event_id = e.id
+                ), 0)::INTEGER as attendee_count
             FROM events e
             LEFT JOIN users u ON e.organizer_id = u.id
             WHERE e.id = $1
@@ -60,7 +65,12 @@ class Event {
             SELECT
                 e.*,
                 u.name as organizer_name,
-                u.email as organizer_email
+                u.email as organizer_email,
+                COALESCE((
+                    SELECT COUNT(*)
+                    FROM event_participants ep
+                    WHERE ep.event_id = e.id
+                ), 0)::INTEGER as attendee_count
             FROM events e
             LEFT JOIN users u ON e.organizer_id = u.id
             WHERE e.event_date + (e.duration_hours || ' hours')::INTERVAL > NOW()
@@ -98,7 +108,12 @@ class Event {
             SELECT
                 e.*,
                 u.name as organizer_name,
-                u.email as organizer_email
+                u.email as organizer_email,
+                COALESCE((
+                    SELECT COUNT(*)
+                    FROM event_participants ep
+                    WHERE ep.event_id = e.id
+                ), 0)::INTEGER as attendee_count
             FROM events e
             LEFT JOIN users u ON e.organizer_id = u.id
             WHERE e.event_date + (e.duration_hours || ' hours')::INTERVAL > NOW()
@@ -124,6 +139,48 @@ class Event {
             return eventsByCategory;
         } catch (error) {
             console.error('Error retrieving events by category:', error);
+            throw error;
+        }
+    }
+
+    static async joinEvent(eventId: string, userId: string): Promise<void> {
+        const checkQuery = 'SELECT id FROM event_participants WHERE event_id = $1 AND user_id = $2';
+        const insertQuery = 'INSERT INTO event_participants (event_id, user_id) VALUES ($1, $2)';
+
+        try {
+            const { rows } = await pool.query(checkQuery, [eventId, userId]);
+
+            if (rows.length > 0) {
+                throw new Error('User already joined this event');
+            }
+
+            await pool.query(insertQuery, [eventId, userId]);
+        } catch (error) {
+            console.error('Error joining event:', error);
+            throw error;
+        }
+    }
+
+    static async checkParticipation(eventId: string, userId: string): Promise<boolean> {
+        const query = 'SELECT id FROM event_participants WHERE event_id = $1 AND user_id = $2';
+
+        try {
+            const { rows } = await pool.query(query, [eventId, userId]);
+            return rows.length > 0;
+        } catch (error) {
+            console.error('Error checking participation:', error);
+            throw error;
+        }
+    }
+
+    static async getParticipantCount(eventId: string): Promise<number> {
+        const query = 'SELECT COUNT(*) as count FROM event_participants WHERE event_id = $1';
+
+        try {
+            const { rows } = await pool.query(query, [eventId]);
+            return parseInt(rows[0].count, 10);
+        } catch (error) {
+            console.error('Error getting participant count:', error);
             throw error;
         }
     }

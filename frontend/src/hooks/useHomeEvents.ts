@@ -53,6 +53,16 @@ export const useHomeEvents = () => {
 
   useEffect(() => {
     fetchEventsByCategory();
+
+    const handleFocus = () => {
+      fetchEventsByCategory();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const handleEventClick = (eventId: string) => {

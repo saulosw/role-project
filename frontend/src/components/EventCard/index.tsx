@@ -1,4 +1,4 @@
-import { IoLocationOutline, IoTimeOutline, IoCalendarOutline } from 'react-icons/io5';
+import { IoLocationOutline, IoTimeOutline, IoCalendarOutline, IoPeopleOutline } from 'react-icons/io5';
 import * as S from './styles';
 
 interface EventCardProps {
@@ -9,6 +9,7 @@ interface EventCardProps {
   time: string;
   location: string;
   category: string;
+  attendeeCount?: number;
   price?: string;
   imageColor?: string;
   categoryIcon?: string;
@@ -22,6 +23,7 @@ function EventCard({
   time,
   location,
   category,
+  attendeeCount = 0,
   price,
   imageColor = '#ff6b35',
   categoryIcon,
@@ -53,6 +55,11 @@ function EventCard({
           <S.Detail>
             <IoLocationOutline className="detail-icon" />
             <span>{location}</span>
+          </S.Detail>
+
+          <S.Detail>
+            <IoPeopleOutline className="detail-icon" />
+            <span>{attendeeCount} {attendeeCount === 1 ? 'participante' : 'participantes'}</span>
           </S.Detail>
         </S.Details>
 
