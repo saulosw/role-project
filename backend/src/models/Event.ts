@@ -54,6 +54,39 @@ class Event {
             throw error;
         }
     }
+
+    static async getAllEvents(limit: number = 50, offset: number = 0): Promise<EventResponse[]> {
+        const query = `
+            SELECT
+                e.*,
+                u.name as organizer_name,
+                u.email as organizer_email
+            FROM events e
+            LEFT JOIN users u ON e.organizer_id = u.id
+            ORDER BY e.created_at DESC
+            LIMIT $1 OFFSET $2
+        `;
+
+        try {
+            const { rows } = await pool.query(query, [limit, offset]);
+            return rows;
+        } catch (error) {
+            console.error('Error retrieving all events:', error);
+            throw error;
+        }
+    }
+
+    static async getTotalEventCount(): Promise<number> {
+        const query = 'SELECT COUNT(*) as total FROM events';
+
+        try {
+            const { rows } = await pool.query(query);
+            return parseInt(rows[0].total, 10);
+        } catch (error) {
+            console.error('Error getting total event count:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Event;
