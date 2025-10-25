@@ -57,7 +57,7 @@ export const useCreateEventForm = () => {
       const result = await response.json();
 
       if (response.ok) {
-        navigate('/');
+        navigate(`/event/${result.event.id}`);
       } else {
         setError(result.message || 'Erro ao criar o evento. Tente novamente.');
       }

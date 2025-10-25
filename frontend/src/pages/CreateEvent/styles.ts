@@ -573,7 +573,9 @@ export const CardDetails = styled(Box)(({ theme }) => ({
   },
 }));
 
-export const CardDetail = styled(Box)<{ isCategoryBadge?: boolean }>(({ isCategoryBadge }) => ({
+export const CardDetail = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isCategoryBadge',
+})<{ isCategoryBadge?: boolean }>(({ isCategoryBadge }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   padding: '0.8rem',

@@ -1,0 +1,145 @@
+import { Alert, CircularProgress, Button } from '@mui/material';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { useEventDetails } from '../../hooks/useEventDetails';
+import { getCategoryStyle } from '../../utils/categoryIcons';
+import * as S from './styles';
+
+function EventPage() {
+  const { eventData, isLoading, error, navigate } = useEventDetails();
+
+  if (isLoading) {
+    return (
+      <S.PageContainer>
+        <Header />
+        <S.LoadingContainer>
+          <CircularProgress size={60} sx={{ color: '#ff6b35' }} />
+          <S.LoadingText>Carregando evento...</S.LoadingText>
+        </S.LoadingContainer>
+        <Footer />
+      </S.PageContainer>
+    );
+  }
+
+  if (error || !eventData) {
+    return (
+      <S.PageContainer>
+        <Header />
+        <S.ErrorContainer>
+          <Alert severity="error" sx={{ marginBottom: '1.5rem', borderRadius: '12px', maxWidth: '600px' }}>
+            {error || 'Evento não encontrado'}
+          </Alert>
+          <Button variant="contained" onClick={() => navigate('/')}>
+            Voltar para Home
+          </Button>
+        </S.ErrorContainer>
+        <Footer />
+      </S.PageContainer>
+    );
+  }
+
+  const categoryStyle = getCategoryStyle(eventData.category);
+  const formattedDate = new Date(eventData.event_date).toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const participantCount = eventData.attendee_count || 0;
+
+  const organizerInitial = eventData.organizer_name?.charAt(0).toUpperCase() || 'O';
+
+  return (
+    <S.PageContainer>
+      <Header />
+      <S.Content>
+        <S.EventContainer>
+          <S.BackButton onClick={() => navigate('/')}>
+            ← Voltar para eventos
+          </S.BackButton>
+
+          <S.MainContent>
+            <S.LeftColumn>
+              <S.HeroSection gradient={categoryStyle.gradient}>
+                <S.CategoryIcon>{categoryStyle.icon}</S.CategoryIcon>
+              </S.HeroSection>
+
+              <S.EventCard>
+                <S.EventHeader>
+                  <S.EventTitle>{eventData.title}</S.EventTitle>
+                  <S.CategoryBadge label={categoryStyle.name} />
+                </S.EventHeader>
+
+                <S.EventDescription>{eventData.description}</S.EventDescription>
+
+                <S.InfoSection>
+                  <S.SectionTitle>📋 Detalhes do Evento</S.SectionTitle>
+                  <S.EventDetails>
+                    <S.DetailItem>
+                      <S.DetailIcon>📅</S.DetailIcon>
+                      <S.DetailContent>
+                        <S.DetailLabel>Data</S.DetailLabel>
+                        <S.DetailValue>{formattedDate}</S.DetailValue>
+                      </S.DetailContent>
+                    </S.DetailItem>
+
+                    <S.DetailItem>
+                      <S.DetailIcon>⏱️</S.DetailIcon>
+                      <S.DetailContent>
+                        <S.DetailLabel>Duração</S.DetailLabel>
+                        <S.DetailValue>{eventData.duration_hours}h</S.DetailValue>
+                      </S.DetailContent>
+                    </S.DetailItem>
+
+                    <S.DetailItem>
+                      <S.DetailIcon>📍</S.DetailIcon>
+                      <S.DetailContent>
+                        <S.DetailLabel>Local</S.DetailLabel>
+                        <S.DetailValue>{eventData.location}</S.DetailValue>
+                      </S.DetailContent>
+                    </S.DetailItem>
+                  </S.EventDetails>
+                </S.InfoSection>
+
+                <S.OrganizerInfo>
+                  <S.OrganizerAvatar>{organizerInitial}</S.OrganizerAvatar>
+                  <S.OrganizerDetails>
+                    <S.OrganizerLabel>Organizador</S.OrganizerLabel>
+                    <S.OrganizerName>{eventData.organizer_name || 'Organizador'}</S.OrganizerName>
+                  </S.OrganizerDetails>
+                </S.OrganizerInfo>
+              </S.EventCard>
+            </S.LeftColumn>
+
+            <S.RightColumn>
+              <S.SideCard>
+                <S.ParticipantsSection>
+                  <S.ParticipantCount>
+                    <S.CountNumber>{participantCount}</S.CountNumber>
+                    <S.CountLabel>
+                      pessoas<br />
+                      confirmadas
+                    </S.CountLabel>
+                  </S.ParticipantCount>
+                </S.ParticipantsSection>
+
+                <S.ActionButtons>
+                  <S.PrimaryButton variant="contained">
+                    Participar do Evento
+                  </S.PrimaryButton>
+                  <S.SecondaryButton variant="outlined">
+                    Compartilhar
+                  </S.SecondaryButton>
+                </S.ActionButtons>
+              </S.SideCard>
+            </S.RightColumn>
+          </S.MainContent>
+        </S.EventContainer>
+      </S.Content>
+      <Footer />
+    </S.PageContainer>
+  );
+}
+
+export default EventPage;

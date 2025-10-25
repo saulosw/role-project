@@ -35,7 +35,15 @@ class Event {
     }
 
     static async getEventById(eventId: string): Promise<EventResponse> {
-        const query = `SELECT * FROM events WHERE id = $1`;
+        const query = `
+            SELECT
+                e.*,
+                u.name as organizer_name,
+                u.email as organizer_email
+            FROM events e
+            LEFT JOIN users u ON e.organizer_id = u.id
+            WHERE e.id = $1
+        `;
 
         try {
             const { rows } = await pool.query(query, [ eventId ]);
