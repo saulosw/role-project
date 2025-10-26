@@ -7,6 +7,9 @@ import AboutUsPage from './pages/AboutUs';
 import CreateEventPage from './pages/CreateEvent';
 import EventPage from './pages/EventPage';
 import ExplorePage from './pages/ExplorePage';
+import ProfilePage from './pages/Profile';
+import MyEventsPage from './pages/MyEvents';
+import ParticipatingEventsPage from './pages/ParticipatingEvents';
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
         <Route path="/sobre" element={<AboutUsPage />} />
         <Route path="/explorar" element={<ExplorePage />} />
         <Route path="/event/:eventId" element={<EventPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/my-events" element={<MyEventsPage />} />
+        <Route path="/profile/participating" element={<ParticipatingEventsPage />} />
       </Routes>
     </Router>
   );

@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 
 const apiPort = process.env.API_PORT || 3000;
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 app.use('/', eventRoutes);
 
 app.get('/', (req: express.Request, res: express.Response) => {
