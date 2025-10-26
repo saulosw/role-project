@@ -209,3 +209,37 @@ export const CreateEventButton = styled(Button)({
     transform: 'translateY(-2px)',
   },
 });
+
+export const EventActions = styled(Box)({
+  display: 'flex',
+  gap: '0.5rem',
+  marginTop: '1rem',
+  paddingTop: '1rem',
+  borderTop: '1px solid #eee',
+});
+
+export const ActionButton = styled(Button)({
+  flex: 1,
+  textTransform: 'none',
+  fontFamily: "'Poppins', sans-serif",
+  fontSize: '0.9rem',
+  padding: '0.6rem 1rem',
+  borderRadius: '8px',
+  fontWeight: '500',
+});
+
+export const EditButton = styled(ActionButton)({
+  background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+  color: '#fff',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #45a049 0%, #3d8b40 100%)',
+  },
+});
+
+export const DeleteButton = styled(ActionButton)({
+  background: 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)',
+  color: '#fff',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)',
+  },
+});

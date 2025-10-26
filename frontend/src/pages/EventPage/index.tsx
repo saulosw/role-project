@@ -1,4 +1,5 @@
-import { Alert, CircularProgress, Button } from '@mui/material';
+import { Alert, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useState } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useEventDetails } from '../../hooks/useEventDetails';
@@ -6,7 +7,40 @@ import { getCategoryStyle } from '../../utils/categoryIcons';
 import * as S from './styles';
 
 function EventPage() {
-  const { eventData, isLoading, error, navigate, isParticipating, isJoining, joinEvent } = useEventDetails();
+  const { eventData, isLoading, error, navigate, isParticipating, isJoining, joinEvent, leaveEvent, isOwner } = useEventDetails();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!eventData) return;
+
+    setIsDeleting(true);
+    const userId = localStorage.getItem('userId');
+
+    try {
+      const response = await fetch(`http://localhost:3000/event/deleteEvent/${eventData.id}`, {
+        method: 'DELETE',
+        headers: {
+          'x-user-id': userId || '',
+        },
+      });
+
+      if (response.ok) {
+        navigate('/profile/my-events');
+      } else {
+        const result = await response.json();
+        alert(result.message || 'Erro ao deletar evento');
+      }
+    } catch (error) {
+      alert('Erro ao conectar com o servidor');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -125,16 +159,47 @@ function EventPage() {
                 </S.ParticipantsSection>
 
                 <S.ActionButtons>
-                  <S.PrimaryButton
-                    variant="contained"
-                    onClick={joinEvent}
-                    disabled={isParticipating || isJoining}
-                  >
-                    {isJoining ? 'Participando...' : isParticipating ? 'Já está participando' : 'Participar do Evento'}
-                  </S.PrimaryButton>
-                  <S.SecondaryButton variant="outlined">
-                    Compartilhar
-                  </S.SecondaryButton>
+                  {isOwner ? (
+                    <>
+                      <S.PrimaryButton
+                        variant="contained"
+                        onClick={() => navigate(`/editar/${eventData.id}`)}
+                      >
+                        Editar Evento
+                      </S.PrimaryButton>
+                      <S.SecondaryButton
+                        variant="outlined"
+                        onClick={handleDeleteClick}
+                        style={{ color: '#f44336', borderColor: '#f44336' }}
+                      >
+                        Deletar Evento
+                      </S.SecondaryButton>
+                    </>
+                  ) : (
+                    <>
+                      {isParticipating ? (
+                        <S.SecondaryButton
+                          variant="outlined"
+                          onClick={leaveEvent}
+                          disabled={isJoining}
+                          style={{ color: '#f44336', borderColor: '#f44336' }}
+                        >
+                          {isJoining ? 'Saindo...' : 'Sair do Evento'}
+                        </S.SecondaryButton>
+                      ) : (
+                        <S.PrimaryButton
+                          variant="contained"
+                          onClick={joinEvent}
+                          disabled={isJoining}
+                        >
+                          {isJoining ? 'Participando...' : 'Participar do Evento'}
+                        </S.PrimaryButton>
+                      )}
+                      <S.SecondaryButton variant="outlined">
+                        Compartilhar
+                      </S.SecondaryButton>
+                    </>
+                  )}
                 </S.ActionButtons>
               </S.SideCard>
             </S.RightColumn>
@@ -142,6 +207,24 @@ function EventPage() {
         </S.EventContainer>
       </S.Content>
       <Footer />
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !isDeleting && setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          Tem certeza que deseja deletar este evento? Esta ação não pode ser desfeita e todos os participantes serão removidos.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+            Cancelar
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" disabled={isDeleting}>
+            {isDeleting ? 'Deletando...' : 'Deletar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </S.PageContainer>
   );
 }

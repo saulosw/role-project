@@ -32,6 +32,10 @@ export const useExploreEvents = () => {
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const [total, setTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [dateFromFilter, setDateFromFilter] = useState('');
+  const [dateToFilter, setDateToFilter] = useState('');
 
   const limit = 50;
 
@@ -39,8 +43,18 @@ export const useExploreEvents = () => {
     try {
       setIsLoading(true);
 
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: currentOffset.toString(),
+      });
+
+      if (searchQuery) params.append('search', searchQuery);
+      if (categoryFilter) params.append('category', categoryFilter);
+      if (dateFromFilter) params.append('dateFrom', dateFromFilter);
+      if (dateToFilter) params.append('dateTo', dateToFilter);
+
       const response = await fetch(
-        `http://localhost:3000/event/getAllEvents?limit=${limit}&offset=${currentOffset}`
+        `http://localhost:3000/event/getAllEvents?${params.toString()}`
       );
       const result: EventsResponse = await response.json();
 
@@ -71,9 +85,13 @@ export const useExploreEvents = () => {
   };
 
   useEffect(() => {
-    fetchEvents();
+    setOffset(0);
+    fetchEvents(0, false);
+  }, [searchQuery, categoryFilter, dateFromFilter, dateToFilter]);
 
+  useEffect(() => {
     const handleFocus = () => {
+      setOffset(0);
       fetchEvents(0, false);
     };
 
@@ -88,6 +106,29 @@ export const useExploreEvents = () => {
     navigate(`/event/${eventId}`);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCategoryFilter = (category: string) => {
+    setCategoryFilter(category);
+  };
+
+  const handleDateFromFilter = (date: string) => {
+    setDateFromFilter(date);
+  };
+
+  const handleDateToFilter = (date: string) => {
+    setDateToFilter(date);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setCategoryFilter('');
+    setDateFromFilter('');
+    setDateToFilter('');
+  };
+
   return {
     events,
     isLoading,
@@ -96,5 +137,14 @@ export const useExploreEvents = () => {
     loadMore,
     handleEventClick,
     total,
+    searchQuery,
+    categoryFilter,
+    dateFromFilter,
+    dateToFilter,
+    handleSearch,
+    handleCategoryFilter,
+    handleDateFromFilter,
+    handleDateToFilter,
+    clearFilters,
   };
 };

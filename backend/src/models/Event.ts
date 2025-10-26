@@ -60,7 +60,49 @@ class Event {
         }
     }
 
-    static async getAllEvents(limit: number = 50, offset: number = 0): Promise<EventResponse[]> {
+    static async getAllEvents(
+        limit: number = 50,
+        offset: number = 0,
+        search?: string,
+        category?: string,
+        dateFrom?: string,
+        dateTo?: string
+    ): Promise<EventResponse[]> {
+        const conditions: string[] = ['e.event_date + (e.duration_hours || \' hours\')::INTERVAL > NOW()'];
+        const values: any[] = [];
+        let paramCount = 1;
+
+        if (search) {
+            conditions.push(`(LOWER(e.title) LIKE $${paramCount} OR LOWER(e.description) LIKE $${paramCount} OR LOWER(e.location) LIKE $${paramCount})`);
+            values.push(`%${search.toLowerCase()}%`);
+            paramCount++;
+        }
+
+        if (category) {
+            conditions.push(`e.category = $${paramCount}`);
+            values.push(category);
+            paramCount++;
+        }
+
+        if (dateFrom) {
+            conditions.push(`e.event_date >= $${paramCount}`);
+            values.push(dateFrom);
+            paramCount++;
+        }
+
+        if (dateTo) {
+            conditions.push(`e.event_date <= $${paramCount}`);
+            values.push(dateTo);
+            paramCount++;
+        }
+
+        values.push(limit);
+        const limitParam = paramCount;
+        paramCount++;
+
+        values.push(offset);
+        const offsetParam = paramCount;
+
         const query = `
             SELECT
                 e.*,
@@ -73,13 +115,13 @@ class Event {
                 ), 0)::INTEGER as attendee_count
             FROM events e
             LEFT JOIN users u ON e.organizer_id = u.id
-            WHERE e.event_date + (e.duration_hours || ' hours')::INTERVAL > NOW()
+            WHERE ${conditions.join(' AND ')}
             ORDER BY e.created_at DESC
-            LIMIT $1 OFFSET $2
+            LIMIT $${limitParam} OFFSET $${offsetParam}
         `;
 
         try {
-            const { rows } = await pool.query(query, [limit, offset]);
+            const { rows } = await pool.query(query, values);
             return rows;
         } catch (error) {
             console.error('Error retrieving all events:', error);
@@ -87,15 +129,48 @@ class Event {
         }
     }
 
-    static async getTotalEventCount(): Promise<number> {
+    static async getTotalEventCount(
+        search?: string,
+        category?: string,
+        dateFrom?: string,
+        dateTo?: string
+    ): Promise<number> {
+        const conditions: string[] = ['event_date + (duration_hours || \' hours\')::INTERVAL > NOW()'];
+        const values: any[] = [];
+        let paramCount = 1;
+
+        if (search) {
+            conditions.push(`(LOWER(title) LIKE $${paramCount} OR LOWER(description) LIKE $${paramCount} OR LOWER(location) LIKE $${paramCount})`);
+            values.push(`%${search.toLowerCase()}%`);
+            paramCount++;
+        }
+
+        if (category) {
+            conditions.push(`category = $${paramCount}`);
+            values.push(category);
+            paramCount++;
+        }
+
+        if (dateFrom) {
+            conditions.push(`event_date >= $${paramCount}`);
+            values.push(dateFrom);
+            paramCount++;
+        }
+
+        if (dateTo) {
+            conditions.push(`event_date <= $${paramCount}`);
+            values.push(dateTo);
+            paramCount++;
+        }
+
         const query = `
             SELECT COUNT(*) as total
             FROM events
-            WHERE event_date + (duration_hours || ' hours')::INTERVAL > NOW()
+            WHERE ${conditions.join(' AND ')}
         `;
 
         try {
-            const { rows } = await pool.query(query);
+            const { rows } = await pool.query(query, values);
             return parseInt(rows[0].total, 10);
         } catch (error) {
             console.error('Error getting total event count:', error);
@@ -181,6 +256,114 @@ class Event {
             return parseInt(rows[0].count, 10);
         } catch (error) {
             console.error('Error getting participant count:', error);
+            throw error;
+        }
+    }
+
+    static async updateEvent(eventId: string, userId: string, eventDetails: Partial<EventDetails>): Promise<EventResponse> {
+        const checkOwnerQuery = 'SELECT organizer_id FROM events WHERE id = $1';
+
+        try {
+            const { rows: ownerRows } = await pool.query(checkOwnerQuery, [eventId]);
+
+            if (ownerRows.length === 0) {
+                throw new Error('Event not found');
+            }
+
+            if (ownerRows[0].organizer_id !== userId) {
+                throw new Error('Only the event organizer can update this event');
+            }
+
+            const updates: string[] = [];
+            const values: any[] = [];
+            let paramCount = 1;
+
+            if (eventDetails.title !== undefined) {
+                updates.push(`title = $${paramCount}`);
+                values.push(eventDetails.title);
+                paramCount++;
+            }
+            if (eventDetails.description !== undefined) {
+                updates.push(`description = $${paramCount}`);
+                values.push(eventDetails.description);
+                paramCount++;
+            }
+            if (eventDetails.category !== undefined) {
+                updates.push(`category = $${paramCount}`);
+                values.push(eventDetails.category);
+                paramCount++;
+            }
+            if (eventDetails.event_date !== undefined) {
+                updates.push(`event_date = $${paramCount}`);
+                values.push(eventDetails.event_date);
+                paramCount++;
+            }
+            if (eventDetails.durationHours !== undefined) {
+                updates.push(`duration_hours = $${paramCount}`);
+                values.push(eventDetails.durationHours);
+                paramCount++;
+            }
+            if (eventDetails.location !== undefined) {
+                updates.push(`location = $${paramCount}`);
+                values.push(eventDetails.location);
+                paramCount++;
+            }
+
+            if (updates.length === 0) {
+                throw new Error('No fields to update');
+            }
+
+            updates.push(`updated_at = NOW()`);
+            values.push(eventId);
+
+            const query = `
+                UPDATE events
+                SET ${updates.join(', ')}
+                WHERE id = $${paramCount}
+                RETURNING *
+            `;
+
+            const { rows } = await pool.query(query, values);
+            return rows[0];
+        } catch (error) {
+            console.error('Error updating event:', error);
+            throw error;
+        }
+    }
+
+    static async deleteEvent(eventId: string, userId: string): Promise<void> {
+        const checkOwnerQuery = 'SELECT organizer_id FROM events WHERE id = $1';
+
+        try {
+            const { rows: ownerRows } = await pool.query(checkOwnerQuery, [eventId]);
+
+            if (ownerRows.length === 0) {
+                throw new Error('Event not found');
+            }
+
+            if (ownerRows[0].organizer_id !== userId) {
+                throw new Error('Only the event organizer can delete this event');
+            }
+
+            await pool.query('DELETE FROM event_participants WHERE event_id = $1', [eventId]);
+            await pool.query('DELETE FROM events WHERE id = $1', [eventId]);
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            throw error;
+        }
+    }
+
+    static async leaveEvent(eventId: string, userId: string): Promise<void> {
+        const query = 'DELETE FROM event_participants WHERE event_id = $1 AND user_id = $2';
+
+        try {
+            const result = await pool.query(query, [eventId, userId]);
+
+            if (result.rowCount === 0) {
+                throw new Error('You are not participating in this event');
+            }
+        } catch (error) {
+            console.error('Error leaving event:', error);
             throw error;
         }
     }

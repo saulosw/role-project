@@ -11,9 +11,16 @@ exports.getEventById = async (eventId: string): Promise<EventDetails> => {
     return event;
 }
 
-exports.getAllEvents = async (limit: number = 50, offset: number = 0): Promise<{ events: EventResponse[], total: number }> => {
-    const events = await Event.getAllEvents(limit, offset);
-    const total = await Event.getTotalEventCount();
+exports.getAllEvents = async (
+    limit: number = 50,
+    offset: number = 0,
+    search?: string,
+    category?: string,
+    dateFrom?: string,
+    dateTo?: string
+): Promise<{ events: EventResponse[], total: number }> => {
+    const events = await Event.getAllEvents(limit, offset, search, category, dateFrom, dateTo);
+    const total = await Event.getTotalEventCount(search, category, dateFrom, dateTo);
     return { events, total };
 }
 
@@ -34,4 +41,17 @@ exports.checkParticipation = async (eventId: string, userId: string): Promise<bo
 exports.getParticipantCount = async (eventId: string): Promise<number> => {
     const count = await Event.getParticipantCount(eventId);
     return count;
+}
+
+exports.updateEvent = async (eventId: string, userId: string, eventDetails: Partial<EventDetails>): Promise<EventDetails> => {
+    const updatedEvent = await Event.updateEvent(eventId, userId, eventDetails);
+    return updatedEvent;
+}
+
+exports.deleteEvent = async (eventId: string, userId: string): Promise<void> => {
+    await Event.deleteEvent(eventId, userId);
+}
+
+exports.leaveEvent = async (eventId: string, userId: string): Promise<void> => {
+    await Event.leaveEvent(eventId, userId);
 }

@@ -1,5 +1,6 @@
-import { Alert, CircularProgress } from '@mui/material';
-import { MdArrowBack, MdLocationOn, MdCalendarToday, MdAccessTime, MdPeople, MdEventNote } from 'react-icons/md';
+import { Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { useState } from 'react';
+import { MdArrowBack, MdLocationOn, MdCalendarToday, MdAccessTime, MdPeople, MdEventNote, MdEdit, MdDelete } from 'react-icons/md';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useMyEvents } from '../../hooks/useMyEvents';
@@ -8,6 +9,48 @@ import * as S from './styles';
 
 function MyEventsPage() {
   const { events, isLoading, error, navigate } = useMyEvents();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    setEventToDelete(eventId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!eventToDelete) return;
+
+    setIsDeleting(true);
+    const userId = localStorage.getItem('userId');
+
+    try {
+      const response = await fetch(`http://localhost:3000/event/deleteEvent/${eventToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'x-user-id': userId || '',
+        },
+      });
+
+      if (response.ok) {
+        setDeleteDialogOpen(false);
+        window.location.reload();
+      } else {
+        const result = await response.json();
+        alert(result.message || 'Erro ao deletar evento');
+      }
+    } catch (error) {
+      alert('Erro ao conectar com o servidor');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    navigate(`/editar/${eventId}`);
+  };
 
   if (isLoading) {
     return (
@@ -113,6 +156,20 @@ function MyEventsPage() {
                       {event.current_participants} participantes
                     </S.EventInfoRow>
                   </S.EventInfo>
+                  <S.EventActions>
+                    <S.EditButton
+                      startIcon={<MdEdit />}
+                      onClick={(e) => handleEditClick(e, event.id)}
+                    >
+                      Editar
+                    </S.EditButton>
+                    <S.DeleteButton
+                      startIcon={<MdDelete />}
+                      onClick={(e) => handleDeleteClick(e, event.id)}
+                    >
+                      Deletar
+                    </S.DeleteButton>
+                  </S.EventActions>
                 </S.EventContent>
               </S.EventCard>
               );
@@ -121,6 +178,24 @@ function MyEventsPage() {
         )}
       </S.Content>
       <Footer />
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !isDeleting && setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          Tem certeza que deseja deletar este evento? Esta ação não pode ser desfeita.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+            Cancelar
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" disabled={isDeleting}>
+            {isDeleting ? 'Deletando...' : 'Deletar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </S.PageContainer>
   );
 }

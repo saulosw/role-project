@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AboutUsPage from './pages/AboutUs';
 import CreateEventPage from './pages/CreateEvent';
+import EditEventPage from './pages/EditEvent';
 import EventPage from './pages/EventPage';
 import ExplorePage from './pages/ExplorePage';
 import ProfilePage from './pages/Profile';
@@ -19,6 +20,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path='/criar' element={<CreateEventPage />} />
+        <Route path='/editar/:eventId' element={<EditEventPage />} />
         <Route path="/sobre" element={<AboutUsPage />} />
         <Route path="/explorar" element={<ExplorePage />} />
         <Route path="/event/:eventId" element={<EventPage />} />

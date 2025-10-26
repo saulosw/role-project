@@ -1,4 +1,4 @@
-import { styled, Box, Typography, Button } from '@mui/material';
+import { styled, Box, Typography, Button, TextField, Select } from '@mui/material';
 
 export const PageContainer = styled(Box)({
   minHeight: '100vh',
@@ -306,5 +306,70 @@ export const LoadMoreButton = styled(Button)({
   '&:disabled': {
     opacity: 0.7,
     cursor: 'not-allowed',
+  },
+});
+
+export const FiltersSection = styled(Box)(({ theme }) => ({
+  background: 'white',
+  borderRadius: '16px',
+  padding: '1.5rem',
+  marginBottom: '2rem',
+  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+  [theme.breakpoints.down('md')]: {
+    padding: '1rem',
+  },
+}));
+
+export const FiltersGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: '2fr 1fr 1fr 1fr auto',
+  gap: '1rem',
+  alignItems: 'center',
+  [theme.breakpoints.down('lg')]: {
+    gridTemplateColumns: '1fr 1fr 1fr auto',
+  },
+  [theme.breakpoints.down('md')]: {
+    gridTemplateColumns: '1fr',
+    gap: '0.8rem',
+  },
+}));
+
+export const SearchField = styled(TextField)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    fontFamily: "'Poppins', sans-serif",
+    '&:hover fieldset': {
+      borderColor: '#ff6b35',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#ff6b35',
+    },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#ff6b35',
+  },
+});
+
+export const FilterSelect = styled(Select)({
+  borderRadius: '12px',
+  fontFamily: "'Poppins', sans-serif",
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#ff6b35',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#ff6b35',
+  },
+});
+
+export const ClearFiltersButton = styled(Button)({
+  borderRadius: '12px',
+  textTransform: 'none',
+  fontFamily: "'Poppins', sans-serif",
+  color: '#ff6b35',
+  borderColor: '#ff6b35',
+  padding: '0.6rem 1.5rem',
+  '&:hover': {
+    borderColor: '#ff6b35',
+    background: 'rgba(255, 107, 53, 0.05)',
   },
 });
