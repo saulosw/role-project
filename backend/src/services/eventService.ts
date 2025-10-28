@@ -1,5 +1,5 @@
 import type { EventDetails, EventResponse } from '../types/event.types';
-const Event = require('../models/Event');
+const Event = require('../models/Event').default;
 
 exports.createEvent = async (eventData: EventDetails): Promise<EventDetails> => {
     const newEvent = await Event.createEvent(eventData);

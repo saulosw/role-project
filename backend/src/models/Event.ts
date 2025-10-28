@@ -1,63 +1,37 @@
+
+import { DataTypes, Model, Op } from 'sequelize';
+import sequelize from '../config/database';
+import type User from './User';
 import type { EventDetails, EventResponse } from '../types/event.types';
+import { v4 as uuidv4 } from 'uuid';
 
-const pool = require('../config/database');
-const ulid = require('ulid').ulid;
+class Event extends Model {
+    declare id: string;
+    declare title: string;
+    declare description: string;
+    declare category: string;
+    declare event_date: Date;
+    declare duration_hours: number;
+    declare location: string;
+    declare organizer_id: string;
 
-class Event {
-    static async createEvent(eventDetails: EventDetails): Promise<EventResponse> {
-        const eventId = ulid();
-
-        const query = `
-            INSERT INTO events (id, title, description, category, event_date, duration_hours, location, organizer_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *;
-        `;
-
-        const values = [
-            eventId,
-            eventDetails.title,
-            eventDetails.description,
-            eventDetails.category,
-            eventDetails.event_date,
-            eventDetails.durationHours,
-            eventDetails.location,
-            eventDetails.organizerId
-        ];
-
-        try {
-            const { rows } = await pool.query(query, values);
-            const newEvent = rows[0];
-            return newEvent;
-        } catch (error) {
-            console.error('Error creating a new event: ', error);
-            throw error;
-        }
+    static async createEvent(eventDetails: EventDetails): Promise<Event> {
+        const newEvent = await Event.create({
+            id: uuidv4(),
+            ...eventDetails
+        } as any);
+        return newEvent;
     }
 
-    static async getEventById(eventId: string): Promise<EventResponse> {
-        const query = `
-            SELECT
-                e.*,
-                u.name as organizer_name,
-                u.email as organizer_email,
-                COALESCE((
-                    SELECT COUNT(*)
-                    FROM event_participants ep
-                    WHERE ep.event_id = e.id
-                ), 0)::INTEGER as attendee_count
-            FROM events e
-            LEFT JOIN users u ON e.organizer_id = u.id
-            WHERE e.id = $1
-        `;
-
-        try {
-            const { rows } = await pool.query(query, [ eventId ]);
-            const event = rows[0];
-            return event;
-        } catch (error) {
-            console.error('Error retrieving event by ID:', error);
-            throw error;
-        }
+    static async getEventById(eventId: string): Promise<Event | null> {
+        const event = await Event.findByPk(eventId, {
+            include: [{
+                model: sequelize.models.User as typeof User,
+                as: 'organizer',
+                attributes: ['name', 'email']
+            }]
+        });
+        return event;
     }
 
     static async getAllEvents(
@@ -67,66 +41,46 @@ class Event {
         category?: string,
         dateFrom?: string,
         dateTo?: string
-    ): Promise<EventResponse[]> {
-        const conditions: string[] = ['e.event_date + (e.duration_hours || \' hours\')::INTERVAL > NOW()'];
-        const values: any[] = [];
-        let paramCount = 1;
+    ): Promise<Event[]> {
+        const where: any = {
+            event_date: {
+                [Op.gt]: new Date()
+            }
+        };
 
         if (search) {
-            conditions.push(`(LOWER(e.title) LIKE $${paramCount} OR LOWER(e.description) LIKE $${paramCount} OR LOWER(e.location) LIKE $${paramCount})`);
-            values.push(`%${search.toLowerCase()}%`);
-            paramCount++;
+            where[Op.or] = [
+                { title: { [Op.like]: `%${search}%` } },
+                { description: { [Op.like]: `%${search}%` } },
+                { location: { [Op.like]: `%${search}%` } }
+            ];
         }
 
         if (category) {
-            conditions.push(`e.category = $${paramCount}`);
-            values.push(category);
-            paramCount++;
+            where.category = category;
         }
 
         if (dateFrom) {
-            conditions.push(`e.event_date >= $${paramCount}`);
-            values.push(dateFrom);
-            paramCount++;
+            where.event_date = { ...where.event_date, [Op.gte]: new Date(dateFrom) };
         }
 
         if (dateTo) {
-            conditions.push(`e.event_date <= $${paramCount}`);
-            values.push(dateTo);
-            paramCount++;
+            where.event_date = { ...where.event_date, [Op.lte]: new Date(dateTo) };
         }
 
-        values.push(limit);
-        const limitParam = paramCount;
-        paramCount++;
+        const events = await Event.findAll({
+            where,
+            limit,
+            offset,
+            include: [{
+                model: sequelize.models.User as typeof User,
+                as: 'organizer',
+                attributes: ['name', 'email']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
 
-        values.push(offset);
-        const offsetParam = paramCount;
-
-        const query = `
-            SELECT
-                e.*,
-                u.name as organizer_name,
-                u.email as organizer_email,
-                COALESCE((
-                    SELECT COUNT(*)
-                    FROM event_participants ep
-                    WHERE ep.event_id = e.id
-                ), 0)::INTEGER as attendee_count
-            FROM events e
-            LEFT JOIN users u ON e.organizer_id = u.id
-            WHERE ${conditions.join(' AND ')}
-            ORDER BY e.created_at DESC
-            LIMIT $${limitParam} OFFSET $${offsetParam}
-        `;
-
-        try {
-            const { rows } = await pool.query(query, values);
-            return rows;
-        } catch (error) {
-            console.error('Error retrieving all events:', error);
-            throw error;
-        }
+        return events;
     }
 
     static async getTotalEventCount(
@@ -135,238 +89,171 @@ class Event {
         dateFrom?: string,
         dateTo?: string
     ): Promise<number> {
-        const conditions: string[] = ['event_date + (duration_hours || \' hours\')::INTERVAL > NOW()'];
-        const values: any[] = [];
-        let paramCount = 1;
+        const where: any = {
+            event_date: {
+                [Op.gt]: new Date()
+            }
+        };
 
         if (search) {
-            conditions.push(`(LOWER(title) LIKE $${paramCount} OR LOWER(description) LIKE $${paramCount} OR LOWER(location) LIKE $${paramCount})`);
-            values.push(`%${search.toLowerCase()}%`);
-            paramCount++;
+            where[Op.or] = [
+                { title: { [Op.like]: `%${search}%` } },
+                { description: { [Op.like]: `%${search}%` } },
+                { location: { [Op.like]: `%${search}%` } }
+            ];
         }
 
         if (category) {
-            conditions.push(`category = $${paramCount}`);
-            values.push(category);
-            paramCount++;
+            where.category = category;
         }
 
         if (dateFrom) {
-            conditions.push(`event_date >= $${paramCount}`);
-            values.push(dateFrom);
-            paramCount++;
+            where.event_date = { ...where.event_date, [Op.gte]: new Date(dateFrom) };
         }
 
         if (dateTo) {
-            conditions.push(`event_date <= $${paramCount}`);
-            values.push(dateTo);
-            paramCount++;
+            where.event_date = { ...where.event_date, [Op.lte]: new Date(dateTo) };
         }
 
-        const query = `
-            SELECT COUNT(*) as total
-            FROM events
-            WHERE ${conditions.join(' AND ')}
-        `;
-
-        try {
-            const { rows } = await pool.query(query, values);
-            return parseInt(rows[0].total, 10);
-        } catch (error) {
-            console.error('Error getting total event count:', error);
-            throw error;
-        }
+        const count = await Event.count({ where });
+        return count;
     }
 
-    static async getEventsByCategory(limit: number = 5): Promise<Record<string, EventResponse[]>> {
-        const query = `
-            SELECT
-                e.*,
-                u.name as organizer_name,
-                u.email as organizer_email,
-                COALESCE((
-                    SELECT COUNT(*)
-                    FROM event_participants ep
-                    WHERE ep.event_id = e.id
-                ), 0)::INTEGER as attendee_count
-            FROM events e
-            LEFT JOIN users u ON e.organizer_id = u.id
-            WHERE e.event_date + (e.duration_hours || ' hours')::INTERVAL > NOW()
-            ORDER BY e.category, e.event_date ASC
-        `;
-
-        try {
-            const { rows } = await pool.query(query);
-
-            const eventsByCategory: Record<string, EventResponse[]> = {};
-
-            rows.forEach((event: EventResponse) => {
-                const category = event.category;
-                if (!eventsByCategory[category]) {
-                    eventsByCategory[category] = [];
+    static async getEventsByCategory(limit: number = 5): Promise<Record<string, Event[]>> {
+        const events = await Event.findAll({
+            where: {
+                event_date: {
+                    [Op.gt]: new Date()
                 }
+            },
+            order: [['category', 'ASC'], ['event_date', 'ASC']]
+        });
 
-                if (eventsByCategory[category] && eventsByCategory[category].length < limit) {
-                    eventsByCategory[category].push(event);
-                }
-            });
+        const eventsByCategory: Record<string, Event[]> = {};
 
-            return eventsByCategory;
-        } catch (error) {
-            console.error('Error retrieving events by category:', error);
-            throw error;
-        }
+        events.forEach((event) => {
+            const category = event.category;
+            if (!eventsByCategory[category]) {
+                eventsByCategory[category] = [];
+            }
+
+            if (eventsByCategory[category] && eventsByCategory[category].length < limit) {
+                eventsByCategory[category].push(event);
+            }
+        });
+
+        return eventsByCategory;
     }
 
     static async joinEvent(eventId: string, userId: string): Promise<void> {
-        const checkQuery = 'SELECT id FROM event_participants WHERE event_id = $1 AND user_id = $2';
-        const insertQuery = 'INSERT INTO event_participants (event_id, user_id) VALUES ($1, $2)';
-
-        try {
-            const { rows } = await pool.query(checkQuery, [eventId, userId]);
-
-            if (rows.length > 0) {
-                throw new Error('User already joined this event');
-            }
-
-            await pool.query(insertQuery, [eventId, userId]);
-        } catch (error) {
-            console.error('Error joining event:', error);
-            throw error;
+        const event = await Event.findByPk(eventId);
+        if (!event) {
+            throw new Error('Event not found');
         }
+        const user = await (sequelize.models.User as typeof User).findByPk(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        await (event as any).addParticipant(user);
     }
 
     static async checkParticipation(eventId: string, userId: string): Promise<boolean> {
-        const query = 'SELECT id FROM event_participants WHERE event_id = $1 AND user_id = $2';
-
-        try {
-            const { rows } = await pool.query(query, [eventId, userId]);
-            return rows.length > 0;
-        } catch (error) {
-            console.error('Error checking participation:', error);
-            throw error;
+        const event = await Event.findByPk(eventId);
+        if (!event) {
+            return false;
         }
+        const participants = await (event as any).getParticipants({ where: { id: userId } });
+        return participants.length > 0;
     }
 
     static async getParticipantCount(eventId: string): Promise<number> {
-        const query = 'SELECT COUNT(*) as count FROM event_participants WHERE event_id = $1';
-
-        try {
-            const { rows } = await pool.query(query, [eventId]);
-            return parseInt(rows[0].count, 10);
-        } catch (error) {
-            console.error('Error getting participant count:', error);
-            throw error;
+        const event = await Event.findByPk(eventId);
+        if (!event) {
+            return 0;
         }
+        return await (event as any).countParticipants();
     }
 
-    static async updateEvent(eventId: string, userId: string, eventDetails: Partial<EventDetails>): Promise<EventResponse> {
-        const checkOwnerQuery = 'SELECT organizer_id FROM events WHERE id = $1';
-
-        try {
-            const { rows: ownerRows } = await pool.query(checkOwnerQuery, [eventId]);
-
-            if (ownerRows.length === 0) {
-                throw new Error('Event not found');
-            }
-
-            if (ownerRows[0].organizer_id !== userId) {
-                throw new Error('Only the event organizer can update this event');
-            }
-
-            const updates: string[] = [];
-            const values: any[] = [];
-            let paramCount = 1;
-
-            if (eventDetails.title !== undefined) {
-                updates.push(`title = $${paramCount}`);
-                values.push(eventDetails.title);
-                paramCount++;
-            }
-            if (eventDetails.description !== undefined) {
-                updates.push(`description = $${paramCount}`);
-                values.push(eventDetails.description);
-                paramCount++;
-            }
-            if (eventDetails.category !== undefined) {
-                updates.push(`category = $${paramCount}`);
-                values.push(eventDetails.category);
-                paramCount++;
-            }
-            if (eventDetails.event_date !== undefined) {
-                updates.push(`event_date = $${paramCount}`);
-                values.push(eventDetails.event_date);
-                paramCount++;
-            }
-            if (eventDetails.durationHours !== undefined) {
-                updates.push(`duration_hours = $${paramCount}`);
-                values.push(eventDetails.durationHours);
-                paramCount++;
-            }
-            if (eventDetails.location !== undefined) {
-                updates.push(`location = $${paramCount}`);
-                values.push(eventDetails.location);
-                paramCount++;
-            }
-
-            if (updates.length === 0) {
-                throw new Error('No fields to update');
-            }
-
-            updates.push(`updated_at = NOW()`);
-            values.push(eventId);
-
-            const query = `
-                UPDATE events
-                SET ${updates.join(', ')}
-                WHERE id = $${paramCount}
-                RETURNING *
-            `;
-
-            const { rows } = await pool.query(query, values);
-            return rows[0];
-        } catch (error) {
-            console.error('Error updating event:', error);
-            throw error;
+    static async updateEvent(eventId: string, userId: string, eventDetails: Partial<EventDetails>): Promise<Event> {
+        const event = await Event.findByPk(eventId);
+        if (!event) {
+            throw new Error('Event not found');
         }
+        if (event.organizer_id !== userId) {
+            throw new Error('Only the event organizer can update this event');
+        }
+        await event.update(eventDetails);
+        return event;
     }
 
     static async deleteEvent(eventId: string, userId: string): Promise<void> {
-        const checkOwnerQuery = 'SELECT organizer_id FROM events WHERE id = $1';
-
-        try {
-            const { rows: ownerRows } = await pool.query(checkOwnerQuery, [eventId]);
-
-            if (ownerRows.length === 0) {
-                throw new Error('Event not found');
-            }
-
-            if (ownerRows[0].organizer_id !== userId) {
-                throw new Error('Only the event organizer can delete this event');
-            }
-
-            await pool.query('DELETE FROM event_participants WHERE event_id = $1', [eventId]);
-            await pool.query('DELETE FROM events WHERE id = $1', [eventId]);
-        } catch (error) {
-            console.error('Error deleting event:', error);
-            throw error;
+        const event = await Event.findByPk(eventId);
+        if (!event) {
+            throw new Error('Event not found');
         }
+        if (event.organizer_id !== userId) {
+            throw new Error('Only the event organizer can delete this event');
+        }
+        await event.destroy();
     }
 
     static async leaveEvent(eventId: string, userId: string): Promise<void> {
-        const query = 'DELETE FROM event_participants WHERE event_id = $1 AND user_id = $2';
-
-        try {
-            const result = await pool.query(query, [eventId, userId]);
-
-            if (result.rowCount === 0) {
-                throw new Error('You are not participating in this event');
-            }
-        } catch (error) {
-            console.error('Error leaving event:', error);
-            throw error;
+        const event = await Event.findByPk(eventId);
+        if (!event) {
+            throw new Error('Event not found');
         }
+        const user = await (sequelize.models.User as typeof User).findByPk(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        await (event as any).removeParticipant(user);
     }
 }
 
-module.exports = Event;
+Event.init({
+    id: {
+        type: DataTypes.STRING,
+        primaryKey: true
+    },
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: false
+    },
+    category: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    event_date: {
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+    duration_hours: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    location: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    organizer_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+            model: 'users',
+            key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    }
+}, {
+    sequelize,
+    modelName: 'Event',
+    tableName: 'events',
+    timestamps: true
+});
+
+export default Event;

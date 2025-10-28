@@ -63,11 +63,16 @@ export const useEventDetails = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        setEventData(result.event);
+        const event = result.event;
+        if (event.organizer) {
+          event.organizer_name = event.organizer.name;
+          event.organizer_email = event.organizer.email;
+        }
+        setEventData(event);
         setError(null);
 
         const userId = localStorage.getItem('userId');
-        if (userId && result.event.organizer_id === userId) {
+        if (userId && event.organizer_id === userId) {
           setIsOwner(true);
         }
 

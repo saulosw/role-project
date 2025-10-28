@@ -1,14 +1,36 @@
-const { Pool } = require('pg');
+import { Sequelize } from 'sequelize';
+import path from 'path';
+import fs from 'fs';
 
-const pool = new Pool({
-    host: process.env.DATABASE_HOST,
-    user: process.env.DATABASE_USER,
-    port: parseInt(process.env.DATABASE_PORT || '5432'),
-    password: process.env.DATABASE_PASSWORD,
-    database: process.env.DATABASE_NAME,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000
+const dbPath = path.resolve(process.cwd(), 'database.sqlite');
+
+// Ensure the database directory exists
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true, mode: 0o775 });
+}
+
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: dbPath,
+  logging: console.log,
+  define: {
+    freezeTableName: true,
+  }
 });
 
-module.exports = pool;
+// Configure SQLite pragmas for better concurrency and foreign key support
+const configureSQLite = async () => {
+  try {
+    await sequelize.query('PRAGMA journal_mode = WAL;');
+    await sequelize.query('PRAGMA foreign_keys = ON;');
+    await sequelize.query('PRAGMA synchronous = NORMAL;');
+    console.log('SQLite pragmas configured successfully');
+  } catch (error) {
+    console.error('Error configuring SQLite pragmas:', error);
+  }
+};
+
+configureSQLite();
+
+export default sequelize;

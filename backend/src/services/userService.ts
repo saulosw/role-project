@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('../models/User').default;
 
 exports.getUserProfile = async (userId: string) => {
     try {

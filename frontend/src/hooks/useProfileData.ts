@@ -40,7 +40,11 @@ export const useProfileData = (): UseProfileDataReturn => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        setUserData(result.user);
+        const user = result.user;
+        if (user.createdAt && !user.created_at) {
+          user.created_at = user.createdAt;
+        }
+        setUserData(user);
         setError(null);
       } else {
         setError(result.message || 'Usuário não encontrado');

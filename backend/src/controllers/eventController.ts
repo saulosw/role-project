@@ -4,7 +4,8 @@ const eventService = require('../services/eventService');
 exports.newEvent = async (req: express.Request, res: express.Response) => {
     const eventData = {
         ...req.body,
-        organizerId: req.userId
+        organizer_id: req.userId,
+        duration_hours: req.body.durationHours
     };
 
     try {
@@ -20,7 +21,12 @@ exports.getEventData = async (req: express.Request, res: express.Response) => {
 
     try {
         const eventData = await eventService.getEventById(eventId);
-        res.status(200).json({ success: true, event: eventData });
+        const participantCount = await eventService.getParticipantCount(eventId);
+        const eventWithCount = {
+            ...eventData.toJSON(),
+            attendee_count: participantCount
+        };
+        res.status(200).json({ success: true, event: eventWithCount });
     } catch (error) {
         res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
     }
@@ -36,9 +42,18 @@ exports.getAllEvents = async (req: express.Request, res: express.Response) => {
 
     try {
         const result = await eventService.getAllEvents(limit, offset, search, category, dateFrom, dateTo);
+        const eventsWithCounts = await Promise.all(
+            result.events.map(async (event: any) => {
+                const count = await eventService.getParticipantCount(event.id);
+                return {
+                    ...event.toJSON(),
+                    attendee_count: count
+                };
+            })
+        );
         res.status(200).json({
             success: true,
-            events: result.events,
+            events: eventsWithCounts,
             total: result.total,
             hasMore: (offset + limit) < result.total
         });
@@ -52,9 +67,23 @@ exports.getEventsByCategory = async (req: express.Request, res: express.Response
 
     try {
         const eventsByCategory = await eventService.getEventsByCategory(limit);
+        const categoriesWithCounts: Record<string, any[]> = {};
+
+        for (const category in eventsByCategory) {
+            categoriesWithCounts[category] = await Promise.all(
+                eventsByCategory[category].map(async (event: any) => {
+                    const count = await eventService.getParticipantCount(event.id);
+                    return {
+                        ...event.toJSON(),
+                        attendee_count: count
+                    };
+                })
+            );
+        }
+
         res.status(200).json({
             success: true,
-            eventsByCategory
+            eventsByCategory: categoriesWithCounts
         });
     } catch (error) {
         res.status(400).json({ success: false, message: error instanceof Error ? error.message : 'An error occurred' })
