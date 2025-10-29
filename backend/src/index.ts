@@ -44,7 +44,7 @@ const startServer = async () => {
         // Sync database - use alter in development, remove in production
         // force: true drops all tables and recreates them
         // alter: true updates tables to match models
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({ force: true });
         console.log('Database synchronized');
 
         app.listen(apiPort, () => {
