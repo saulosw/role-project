@@ -12,12 +12,6 @@
 [![Material-UI](https://img.shields.io/badge/Material--UI-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://mui.com/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-[Sobre](#-sobre-o-projeto) •
-[Funcionalidades](#-funcionalidades) •
-[Tecnologias](#-tecnologias) •
-[Instalação](#-como-executar) •
-[Equipe](#-equipe)
-
 </div>
 
 ---
@@ -35,23 +29,6 @@ Atualmente, informações sobre eventos estão espalhadas em diversos grupos de 
 O Rolê centraliza todos os eventos em uma única plataforma, onde qualquer pessoa pode descobrir, criar e divulgar atividades. Uma agenda cultural e social alimentada pela própria comunidade.
 
 ---
-
-## 🎬 Demonstração
-
-### Página Inicial
-![Home Page](./assets/demo/home.gif)
-
-### 🔍 Explorar Eventos
-![Explore Events](./assets/demo/explore.gif)
-
-### ✨ Criar Evento
-![Create Event](./assets/demo/create-event.gif)
-
-### 👤 Perfil do Usuário
-![User Profile](./assets/demo/profile.gif)
-
-> **Nota:** As imagens/GIFs devem ser adicionadas na pasta `assets/demo/` na raiz do projeto.
-
 
 ## ✨ Funcionalidades
 
@@ -128,7 +105,7 @@ Certifique-se de ter instalado:
 
 1. **Clone o repositório**
 ```bash
-git clone https://github.com/seu-usuario/role-project.git
+git clone https://github.com/saulosw/role-project.git
 cd role-project
 ```
 
@@ -219,109 +196,6 @@ role-project/
 
 ---
 
-## 🗄️ Modelagem do Banco de Dados
-
-### Tabelas Principais
-
-#### **users**
-- `id` (UUID) - Identificador único
-- `name` (String) - Nome do usuário
-- `email` (String, único) - Email para login
-- `password_hash` (String) - Senha criptografada
-- `createdAt`, `updatedAt` - Timestamps
-
-#### **events**
-- `id` (UUID) - Identificador único
-- `title` (String) - Título do evento
-- `description` (Text) - Descrição detalhada
-- `category` (String) - Categoria do evento
-- `event_date` (Date) - Data de realização
-- `duration_hours` (Integer) - Duração em horas
-- `location` (String) - Local do evento
-- `organizer_id` (UUID) - ID do organizador (FK para users)
-- `createdAt`, `updatedAt` - Timestamps
-
-#### **user_event_participants**
-- Tabela de junção (Many-to-Many)
-- Relaciona usuários com eventos que confirmaram presença
-
----
-
-## 🔌 API Endpoints
-
-### Autenticação
-```
-POST   /auth/signIn           # Registro de novo usuário
-POST   /auth/login            # Login de usuário
-```
-
-### Eventos
-```
-POST   /event/newEvent        # Criar novo evento (protegido)
-GET    /event/getEvent/:id    # Obter detalhes de um evento
-GET    /event/getAllEvents    # Listar todos os eventos (paginado)
-GET    /event/getEventsByCategory  # Eventos agrupados por categoria
-PUT    /event/updateEvent/:id # Atualizar evento (protegido)
-DELETE /event/deleteEvent/:id # Deletar evento (protegido)
-POST   /event/joinEvent/:id   # Confirmar presença (protegido)
-DELETE /event/leaveEvent/:id  # Cancelar presença (protegido)
-GET    /event/checkParticipation/:id  # Verificar participação (protegido)
-```
-
-### Usuários
-```
-GET    /user/profile          # Obter perfil do usuário (protegido)
-GET    /user/my-events        # Eventos criados pelo usuário (protegido)
-GET    /user/participating    # Eventos que o usuário confirmou (protegido)
-```
-
----
-
-## 👨‍💻 Equipe
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/saulo-pereira">
-        <img src="https://github.com/saulo-pereira.png" width="100px;" alt="Saulo Pereira"/><br>
-        <sub>
-          <b>Saulo Pereira</b>
-        </sub>
-      </a><br>
-      <sub>Back-end Developer</sub>
-    </td>
-    <td align="center">
-      <a href="https://github.com/gustavo-bernardi">
-        <img src="https://github.com/gustavo-bernardi.png" width="100px;" alt="Gustavo Bernardi"/><br>
-        <sub>
-          <b>Gustavo Bernardi</b>
-        </sub>
-      </a><br>
-      <sub>Front-end Developer</sub>
-    </td>
-    <td align="center">
-      <a href="https://github.com/felipe-vallim">
-        <img src="https://github.com/felipe-vallim.png" width="100px;" alt="Felipe Vallim"/><br>
-        <sub>
-          <b>Felipe Vallim</b>
-        </sub>
-      </a><br>
-      <sub>DBA & DevOps</sub>
-    </td>
-    <td align="center">
-      <a href="https://github.com/pedro-della-rosa">
-        <img src="https://github.com/pedro-della-rosa.png" width="100px;" alt="Pedro Della Rosa"/><br>
-        <sub>
-          <b>Pedro Della Rosa</b>
-        </sub>
-      </a><br>
-      <sub>DBA & DevOps</sub>
-    </td>
-  </tr>
-</table>
-
----
-
 ## 🎓 Instituição
 
 <div align="center">
@@ -330,32 +204,14 @@ GET    /user/participating    # Eventos que o usuário confirmou (protegido)
 
 Este projeto foi desenvolvido como parte do curso de **Ciência da Computação** da FECAP, uma das mais tradicionais instituições de ensino superior de São Paulo, fundada em 1902.
 
-<img src="https://www.fecap.br/wp-content/themes/fecap/assets/images/logo-fecap.png" alt="FECAP Logo" width="200"/>
+### Integrantes do Grupo
 
-**Disciplina:** Desenvolvimento de Aplicações Web
-**Semestre:** 2024/2
-**Professor:** [Nome do Professor]
+- Felipe Vallim
+- Gustavo Demetrio
+- Pedro Della Rosa
+- Saulo Pereira
 
 </div>
-
----
-
-## 📅 Cronograma de Desenvolvimento
-
-O projeto foi desenvolvido em 4 semanas:
-
-| Semana | Foco | Entregas |
-|--------|------|----------|
-| **Semana 1** | Planejamento e Fundação | Modelagem do banco de dados, setup inicial do projeto, configuração do Git |
-| **Semana 2** | Sistema de Autenticação | Backend: rotas de registro e login<br>Segurança com bcrypt |
-| **Semana 3** | Core de Eventos | Backend: CRUD de eventos<br>Frontend: telas de login e registro |
-| **Semana 4** | Finalização e Testes | Frontend: todas as telas<br>Integração completa<br>Testes e correções |
-
----
-
-## 📝 Licença
-
-Este projeto foi desenvolvido para fins educacionais como parte do curso de Ciência da Computação da FECAP.
 
 ---
 
@@ -366,15 +222,6 @@ Este projeto foi desenvolvido para fins educacionais como parte do curso de Ciê
 3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
 4. Push para a branch (`git push origin feature/MinhaFeature`)
 5. Abra um Pull Request
-
----
-
-## 📞 Contato
-
-Dúvidas ou sugestões sobre o projeto? Entre em contato com a equipe!
-
-- **Repositório:** [github.com/seu-usuario/role-project](https://github.com/seu-usuario/role-project)
-- **Issues:** [github.com/seu-usuario/role-project/issues](https://github.com/seu-usuario/role-project/issues)
 
 ---
 
